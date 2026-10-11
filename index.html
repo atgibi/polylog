@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Polylog — the changelog your users read in their own language</title>
+<meta name="description" content="Write your changelog once. Every user sees it in their own language, in 30 languages. A tiny What's new widget and public changelog for indie SaaS. Join the waitlist.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap">
+<style>
+/* Layout: one narrow reading column; the live widget demo breaks out wide in the middle. */
+:root {
+  --bg: #fbfbfd;
+  --surface: #ffffff;
+  --ink: #0f1222;
+  --muted: #5b6075;
+  --line: #e3e5ee;
+  --accent: #2c46f5;
+  --accent-ink: #ffffff;
+  --accent-soft: #eaedff;
+  --badge: #ffcf3a;
+  --new: #127a4b;
+  --improved: #2c46f5;
+  --fixed: #a3540a;
+  --font-display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --font-body: "Geist", system-ui, -apple-system, "Segoe UI", "Noto Sans", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0c0e18; --surface: #141726; --ink: #eef0f8; --muted: #9aa0b8; --line: #262a3d;
+    --accent: #7d8cff; --accent-ink: #0c0e18; --accent-soft: #1d2246; --badge: #ffd65c;
+    --new: #5fd39c; --improved: #9aa6ff; --fixed: #f0a85c; color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.6 var(--font-body); }
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+.wrap { max-width: 720px; margin: 0 auto; padding-inline: 20px; }
+.wide { max-width: 1040px; margin: 0 auto; padding-inline: 20px; }
+header.top { display: flex; align-items: center; justify-content: space-between; padding-block: 22px; }
+.brand { font: 600 1.1rem/1 var(--font-body); letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px; color: var(--ink); text-decoration: none; }
+.brand-mark { width: 22px; height: 22px; border-radius: 6px; background: var(--accent); position: relative; }
+.brand-mark::after { content: ""; position: absolute; top: -3px; right: -3px; width: 9px; height: 9px; border-radius: 50%; background: var(--badge); border: 2px solid var(--bg); }
+.top a.cta-small { font-size: 0.95rem; text-decoration: none; font-weight: 500; }
+
+.hero { padding-block: 48px 24px; }
+.eyebrow { font: 500 0.8rem/1.4 var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+h1 { font: 400 clamp(2.5rem, 7vw, 4.2rem)/1.02 var(--font-display); letter-spacing: -0.01em; margin: 14px 0 18px; text-wrap: balance; }
+h1 em { color: var(--accent); }
+.lede { font-size: 1.15rem; color: var(--muted); margin: 0 0 28px; max-width: 34em; }
+.btn { display: inline-flex; align-items: center; gap: 8px; background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 10px; padding: 13px 20px; font: 600 1rem/1 var(--font-body); text-decoration: none; cursor: pointer; }
+.btn:hover { filter: brightness(1.08); }
+.btn[disabled] { opacity: 0.6; cursor: progress; }
+.note { font-size: 0.88rem; color: var(--muted); margin-top: 12px; }
+
+/* ---------- live demo ---------- */
+.demo { padding-block: 40px; }
+.demo-title { font: 400 clamp(1.8rem, 4.5vw, 2.4rem)/1.1 var(--font-display); margin: 0 0 18px; }
+.demo-frame { border: 1px solid var(--line); border-radius: 16px; background: var(--surface); overflow: hidden; box-shadow: 0 20px 60px -30px rgba(15, 18, 34, 0.35); }
+.demo-bar { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.demo-bar .dots { display: flex; gap: 6px; }
+.demo-bar .dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--line); display: block; }
+.demo-bar .url { flex: 1; min-width: 0; font: 0.8rem/1 var(--font-mono); color: var(--muted); background: var(--bg); border-radius: 6px; padding: 7px 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.demo-app { display: grid; grid-template-columns: 180px minmax(0, 1fr); min-height: 400px; position: relative; }
+.demo-side { border-right: 1px solid var(--line); padding: 18px 14px; display: grid; align-content: start; gap: 6px; font-size: 0.9rem; color: var(--muted); }
+.demo-side b { color: var(--ink); font-weight: 600; margin-bottom: 8px; }
+.demo-side span { padding: 6px 8px; border-radius: 6px; }
+.demo-side span.on { background: var(--accent-soft); color: var(--ink); }
+.demo-main { padding: 18px 22px; display: grid; align-content: start; gap: 14px; }
+.demo-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.demo-head h3 { margin: 0; font: 600 1.05rem/1.2 var(--font-body); }
+.whatsnew { position: relative; display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 8px 14px; font: 500 0.9rem/1 var(--font-body); cursor: pointer; }
+.whatsnew .dot { position: absolute; top: -6px; right: -6px; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--badge); color: #1b1600; font: 600 0.72rem/20px var(--font-mono); text-align: center; }
+.skeleton { display: grid; gap: 10px; }
+.skeleton i { display: block; height: 12px; border-radius: 6px; background: var(--line); }
+.skeleton i:nth-child(2) { width: 82%; } .skeleton i:nth-child(3) { width: 64%; } .skeleton i:nth-child(4) { width: 90%; }
+
+.panel { position: absolute; z-index: 2; top: 64px; right: 18px; width: min(360px, calc(100% - 36px)); max-height: calc(100% - 82px); overflow: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 18px 50px -20px rgba(15, 18, 34, 0.45); padding: 16px; display: grid; gap: 14px; }
+.panel[hidden] { display: none; }
+.panel-head { display: flex; align-items: center; justify-content: space-between; }
+.panel-head strong { font-size: 0.95rem; }
+.panel-head button { border: 0; background: none; color: var(--muted); font-size: 1.3rem; line-height: 1; cursor: pointer; padding: 2px 6px; }
+.entry { display: grid; gap: 4px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.entry:last-child { border-bottom: 0; padding-bottom: 0; }
+.entry-meta { display: flex; align-items: center; gap: 8px; font: 0.75rem/1 var(--font-mono); color: var(--muted); }
+.tag { font: 600 0.7rem/1 var(--font-body); text-transform: uppercase; letter-spacing: 0.04em; padding: 4px 6px; border-radius: 4px; }
+.tag.new { color: var(--new); background: color-mix(in srgb, var(--new) 14%, transparent); }
+.tag.improved { color: var(--improved); background: color-mix(in srgb, var(--improved) 14%, transparent); }
+.tag.fixed { color: var(--fixed); background: color-mix(in srgb, var(--fixed) 14%, transparent); }
+.entry h4 { margin: 0; font-size: 0.98rem; }
+.entry p { margin: 0; font-size: 0.9rem; color: var(--muted); line-height: 1.5; }
+
+.langs { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 18px; }
+.langs .label { font-size: 0.9rem; color: var(--muted); }
+.lang-select { font: 500 0.95rem var(--font-body); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; min-width: 200px; max-width: 100%; }
+.quick { display: flex; flex-wrap: wrap; gap: 6px; }
+.quick button { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 6px 11px; font: 500 0.82rem/1 var(--font-body); cursor: pointer; }
+.quick button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.demo-caption { font-size: 0.88rem; color: var(--muted); margin-top: 10px; }
+
+/* ---------- sections ---------- */
+section.block { padding-block: 44px; }
+h2 { font: 400 clamp(1.8rem, 4.5vw, 2.4rem)/1.1 var(--font-display); margin: 0 0 18px; text-wrap: balance; }
+.steps { counter-reset: s; display: grid; gap: 18px; margin: 0; padding: 0; list-style: none; }
+.steps li { counter-increment: s; display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 14px; align-items: start; }
+.steps li::before { content: counter(s); font: 500 0.9rem/40px var(--font-mono); text-align: center; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); color: var(--muted); }
+.steps strong { display: block; margin-bottom: 2px; }
+.steps span { color: var(--muted); }
+code.snippet { display: block; font: 0.82rem/1.5 var(--font-mono); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin-top: 8px; overflow-x: auto; white-space: pre; color: var(--ink); }
+
+.compare { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+.compare-wrap { overflow-x: auto; }
+.compare th, .compare td { text-align: left; padding: 12px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.compare th { font: 500 0.78rem/1.2 var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+.compare td.us { font-weight: 600; }
+.compare-note { font-size: 0.82rem; color: var(--muted); margin-top: 10px; }
+
+/* ---------- waitlist ---------- */
+.waitlist { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 28px; }
+.waitlist form { display: grid; gap: 16px; margin-top: 8px; }
+.waitlist label.field { display: grid; gap: 6px; font-weight: 500; font-size: 0.95rem; }
+.waitlist input[type="email"] { font: inherit; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); width: 100%; }
+fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 8px; }
+legend { font-weight: 500; font-size: 0.95rem; margin-bottom: 6px; padding: 0; }
+.choice { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; }
+.choice:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+.choice input { accent-color: var(--accent); }
+.hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+.form-msg { margin: 0; font-size: 0.95rem; min-height: 1.4em; }
+.form-msg.ok { color: var(--new); }
+.form-msg.err { color: var(--fixed); }
+
+.faq details { border-bottom: 1px solid var(--line); padding-block: 14px; }
+.faq summary { cursor: pointer; font-weight: 500; }
+.faq p { color: var(--muted); margin: 8px 0 0; }
+footer { padding-block: 40px 60px; color: var(--muted); font-size: 0.85rem; }
+
+@media (max-width: 640px) {
+  body { font-size: 16px; }
+  .demo-app { grid-template-columns: 1fr; min-height: 460px; }
+  .demo-side { display: none; }
+  .panel { top: 70px; right: 12px; width: calc(100% - 24px); }
+  .waitlist { padding: 20px; }
+  .lang-select { flex: 1; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .panel:not([hidden]) { animation: pop 0.18s ease-out; }
+  @keyframes pop { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <a class="brand" href="#"><span class="brand-mark" aria-hidden="true"></span>Polylog</a>
+      <a class="cta-small" href="#waitlist">Join the waitlist →</a>
+    </header>
+
+    <section class="hero">
+      <div class="eyebrow">Changelog · What's new widget · 30 languages</div>
+      <h1>Write your changelog once. <em>Every user reads it in their own language.</em></h1>
+      <p class="lede">A tiny “What’s new” widget and public changelog for indie SaaS. You write updates in Markdown; Polylog translates them into 30 languages and shows each user the version in theirs.</p>
+      <a class="btn" href="#waitlist">Get early access</a>
+      <p class="note">We’re checking demand before we build. 30 languages at launch, including right-to-left Arabic, Hebrew and Persian.</p>
+    </section>
+  </div>
+
+  <section class="demo wide" aria-labelledby="demo-title">
+    <h2 id="demo-title" class="demo-title">Try it: pick a language</h2>
+    <div class="demo-frame">
+      <div class="demo-bar"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="url">app.acme-invoices.example/dashboard</span></div>
+      <div class="demo-app">
+        <div class="demo-side" aria-hidden="true"><b>Acme Invoices</b><span class="on">Dashboard</span><span>Invoices</span><span>Customers</span><span>Settings</span></div>
+        <div class="demo-main">
+          <div class="demo-head">
+            <h3 id="demo-heading">Dashboard</h3>
+            <button class="whatsnew" id="whatsnew" type="button" aria-expanded="false" aria-controls="panel"><span id="wn-label">What’s new</span><span class="dot" id="wn-count">3</span></button>
+          </div>
+          <div class="skeleton" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="skeleton" aria-hidden="true"><i></i><i></i><i></i></div>
+        </div>
+        <div class="panel" id="panel" role="dialog" aria-labelledby="panel-title" hidden>
+          <div class="panel-head"><strong id="panel-title">What’s new</strong><button type="button" id="panel-close" aria-label="Close">×</button></div>
+          <div id="entries"></div>
+        </div>
+      </div>
+    </div>
+    <div class="langs">
+      <label class="label" for="lang-select">Show the widget in:</label>
+      <select id="lang-select" class="lang-select"></select>
+      <div class="quick" id="quick" role="group" aria-label="Quick picks"></div>
+    </div>
+    <p class="demo-caption">A demo with a made-up product. In Polylog, the language is picked automatically from each user’s browser. The demo translations were written by hand; if one sounds off in your language, tell us when you join.</p>
+  </section>
+
+  <div class="wrap">
+    <section class="block" aria-labelledby="how">
+      <h2 id="how">How it works</h2>
+      <ol class="steps">
+        <li><div><strong>Write an update in Markdown</strong><span>Tag it New, Improved or Fixed. Write in any language you like.</span></div></li>
+        <li><div><strong>Review the translations</strong><span>Polylog translates it into 30 languages right away. Every language is editable before you publish.</span></div></li>
+        <li><div><strong>Add one line to your site</strong><span>The widget is a small script. If our servers ever go down, your app keeps working; only the widget hides.</span>
+          <code class="snippet">&lt;script src="https://cdn.polylog.example/w.js" data-project="acme" defer&gt;&lt;/script&gt;</code></div></li>
+      </ol>
+    </section>
+
+    <section class="block" aria-labelledby="why">
+      <h2 id="why">Why another changelog tool?</h2>
+      <p>Because multilingual changelogs are priced for big companies. If your users are worldwide, they shouldn’t all get updates in English.</p>
+      <div class="compare-wrap">
+        <table class="compare">
+          <thead><tr><th>Tool</th><th>Changelog</th><th>Multiple languages</th></tr></thead>
+          <tbody>
+            <tr><td>AnnounceKit</td><td>$59/mo</td><td>“Globalize” add-on, +$49/mo</td></tr>
+            <tr><td>Beamer</td><td>Free under 1,000 MAU, then $59/mo</td><td>Free plan: one language</td></tr>
+            <tr><td class="us">Polylog (planned)</td><td class="us">Free for 1 project, Pro $9/mo</td><td class="us">30 languages included</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="compare-note">Monthly prices from each vendor’s pricing page, checked October 2026. Polylog prices are our current plan and may change.</p>
+    </section>
+
+    <section class="block" id="waitlist" aria-labelledby="wl">
+      <div class="waitlist">
+        <h2 id="wl">Join the waitlist</h2>
+        <p style="margin:0;color:var(--muted)">One email when we open early access. No newsletter, no spam.</p>
+        <form id="wl-form" novalidate>
+          <input type="hidden" name="access_key" value="37e7f1d9-645c-4d16-8918-dce3bb0957f3">
+          <input type="hidden" name="subject" value="Polylog waitlist">
+          <input type="hidden" name="source" id="source" value="direct">
+          <div class="hp" aria-hidden="true"><label>Leave empty <input type="checkbox" name="botcheck" tabindex="-1"></label></div>
+          <label class="field" for="email">Email
+            <input id="email" type="email" name="email" autocomplete="email" required placeholder="you@yourapp.com">
+          </label>
+          <fieldset>
+            <legend>Would you pay for this?</legend>
+            <label class="choice"><input type="radio" name="would_pay" value="9_per_month" required> Yes, at $9/month</label>
+            <label class="choice"><input type="radio" name="would_pay" value="19_per_month"> Yes, even at $19/month</label>
+            <label class="choice"><input type="radio" name="would_pay" value="free_only"> Only if it’s free</label>
+          </fieldset>
+          <button class="btn" type="submit" id="wl-submit">Join the waitlist</button>
+          <p class="form-msg" id="wl-msg" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+
+    <section class="block faq" aria-labelledby="faq">
+      <h2 id="faq">Questions</h2>
+      <details><summary>Is this live yet?</summary><p>No. We’re checking that enough people want it before building. If you join, you’ll hear from us once, when early access opens.</p></details>
+      <details><summary>Which languages?</summary><p>30 at launch: English, Turkish, German, Spanish, French, Portuguese, Italian, Dutch, Polish, Swedish, Danish, Norwegian, Finnish, Czech, Romanian, Hungarian, Greek, Russian, Ukrainian, Arabic, Hebrew, Persian, Hindi, Indonesian, Vietnamese, Thai, Japanese, Korean, and Simplified and Traditional Chinese.</p></details>
+      <details><summary>How good are the translations?</summary><p>They’re machine translations made with a large language model, and you can edit every language before publishing. Short product updates translate well; you stay in control.</p></details>
+      <details><summary>Will the widget slow down my site?</summary><p>It loads after your page and is kept small. It never blocks your app from working.</p></details>
+      <details><summary>Can I leave anytime?</summary><p>Yes. You can export all your updates, in every language, as Markdown files.</p></details>
+    </section>
+  </div>
+
+  <footer class="wrap">Polylog is a working name for a product in validation. Prices are plans, not offers.</footer>
+
+<script src="i18n.js"></script>
+<script>
+(function () {
+  var D = window.POLYLOG_I18N;
+  var QUICK = ["en", "tr", "de", "es", "ar", "ja", "zh-CN"];
+  var panel = document.getElementById("panel");
+  var btn = document.getElementById("whatsnew");
+  var select = document.getElementById("lang-select");
+  var quick = document.getElementById("quick");
+  var byCode = {};
+  D.langs.forEach(function (l) { byCode[l.code] = l; });
+  var current = "en";
+
+  function pickDefault() {
+    var prefs = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || "en"];
+    for (var i = 0; i < prefs.length; i++) {
+      var p = String(prefs[i]);
+      var lower = p.toLowerCase();
+      if (lower === "zh-tw" || lower === "zh-hk" || lower.indexOf("zh-hant") === 0) return "zh-TW";
+      if (lower.indexOf("zh") === 0) return "zh-CN";
+      if (lower === "no" || lower.indexOf("nb") === 0 || lower.indexOf("nn") === 0 || lower.indexOf("no-") === 0) return "nb";
+      var two = lower.slice(0, 2);
+      if (D.t[two]) return two;
+    }
+    return "en";
+  }
+
+  function fmtDate(iso, code) {
+    try { return new Date(iso + "T12:00:00").toLocaleDateString(code, { day: "numeric", month: "short", year: "numeric" }); }
+    catch (e) { return iso; }
+  }
+
+  function render() {
+    var L = D.t[current];
+    var dir = byCode[current].dir || "ltr";
+    document.getElementById("wn-label").textContent = L.ui[0];
+    document.getElementById("panel-title").textContent = L.ui[0];
+    document.getElementById("demo-heading").textContent = L.ui[1];
+    panel.dir = dir; panel.lang = current;
+    btn.lang = current;
+    var box = document.getElementById("entries");
+    box.replaceChildren();
+    D.entries.forEach(function (e, i) {
+      var tagIdx = { "new": 2, improved: 3, fixed: 4 }[e.tag];
+      var d = document.createElement("article"); d.className = "entry";
+      var meta = document.createElement("div"); meta.className = "entry-meta";
+      var tag = document.createElement("span"); tag.className = "tag " + e.tag; tag.textContent = L.ui[tagIdx];
+      var date = document.createElement("time"); date.dateTime = e.date; date.textContent = fmtDate(e.date, current);
+      meta.append(tag, date);
+      var h = document.createElement("h4"); h.textContent = L.e[i][0];
+      var p = document.createElement("p"); p.textContent = L.e[i][1];
+      d.append(meta, h, p); box.appendChild(d);
+    });
+    select.value = current;
+    quick.querySelectorAll("button").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.code === current ? "true" : "false"); });
+  }
+
+  D.langs.forEach(function (l) {
+    var o = document.createElement("option"); o.value = l.code; o.textContent = l.name; o.lang = l.code; select.appendChild(o);
+  });
+  select.addEventListener("change", function () { current = select.value; render(); openPanel(); });
+  QUICK.forEach(function (code) {
+    var b = document.createElement("button"); b.type = "button"; b.dataset.code = code; b.lang = code; b.textContent = byCode[code].name;
+    b.addEventListener("click", function () { current = code; render(); openPanel(); });
+    quick.appendChild(b);
+  });
+
+  function openPanel() { panel.hidden = false; btn.setAttribute("aria-expanded", "true"); document.getElementById("wn-count").hidden = true; }
+  function closePanel() { panel.hidden = true; btn.setAttribute("aria-expanded", "false"); btn.focus(); }
+  btn.addEventListener("click", function () { panel.hidden ? openPanel() : closePanel(); });
+  document.getElementById("panel-close").addEventListener("click", closePanel);
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !panel.hidden) closePanel(); });
+
+  current = pickDefault();
+  render();
+
+  // ---------- waitlist ----------
+  var params = new URLSearchParams(location.search);
+  var src = params.get("ref") || params.get("utm_source");
+  if (src) document.getElementById("source").value = src.slice(0, 40);
+
+  var form = document.getElementById("wl-form");
+  var msg = document.getElementById("wl-msg");
+  var submit = document.getElementById("wl-submit");
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    msg.className = "form-msg"; msg.textContent = "";
+    var email = form.email.value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { msg.className = "form-msg err"; msg.textContent = "Please enter a valid email address."; form.email.focus(); return; }
+    if (!form.querySelector('input[name="would_pay"]:checked')) { msg.className = "form-msg err"; msg.textContent = "Please pick one answer about pricing."; return; }
+    if (form.access_key.value.indexOf("YOUR_") === 0) { msg.className = "form-msg err"; msg.textContent = "The form isn’t connected yet (preview)."; return; }
+    submit.disabled = true; submit.textContent = "Sending…";
+    var data = Object.fromEntries(new FormData(form));
+    data.language = navigator.language || "";
+    fetch("https://api.web3forms.com/submit", {
+      method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify(data)
+    }).then(function (r) { return r.json(); }).then(function (res) {
+      if (res.success) { form.reset(); msg.className = "form-msg ok"; msg.textContent = "You’re on the list. We’ll email you once, when early access opens."; }
+      else { throw new Error(res.message || "error"); }
+    }).catch(function () {
+      msg.className = "form-msg err"; msg.textContent = "Something went wrong. Please try again in a minute.";
+    }).then(function () { submit.disabled = false; submit.textContent = "Join the waitlist"; });
+  });
+})();
+</script>
+</body>
+</html>
